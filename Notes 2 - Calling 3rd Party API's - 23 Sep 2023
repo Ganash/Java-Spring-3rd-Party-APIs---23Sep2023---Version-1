@@ -2,9 +2,47 @@
 Let's start implementing all the controllers that are present in productcontroller
 
 
+Q) What is the purpose of controller?
+
+A) The purpose of controller is:
+
+1. Controller Takes request from client
+2. Controller Parses or takes out the parameters from the request
+3. Controller Calls the service with those particular parameters
+
+
+Q) What do you think that getAllProducts() should actually return?
+A) It should return list of products.
+
+Q) Are we currently storing the products in our DB?
+A)
+
+1. No, these models (BaseModel, Category, Product) are not getting stored anywhere.
+2. In fact the models which we are going to get, They are replica of how they are being storead at FakeStore. Not in DB
+3. The products which I am going to get or return from proxy server. The products which I am going to get will know how FakeStore is giving.
+
+For Example:
+
+In Product.java (models package). I have something called ImageURL. Do you think Fakestore will have ImageURL. FakeStore had something called Image.
+
+---------------
+
+So what we are going to do now is:
+
+In FakeStoreProductServiceImpl.java, what will get on products of FakeStoreProductServiceImpl. Ideally services should return internal models. Ideally services should return than I know about. Tomorrow I want move the proxy from FakeStore to some other API or Database etc
+
+Q) Do you think that I should make return type of ProductService interface to be what is being written by Fakestore or I should make the return type what I want and then convert what FakeStore want to my format?
+
+Same Question Q) Should I keep the return type what exactly what FakeStore has or I should decide what return type to be return and whatever fakestore is returning, I will be converting to that?
+
+A) I will decide what should return
+
+
+
+
 ******************************************************
 
-
+Time: 19.30
 
 ******************************************************
 
