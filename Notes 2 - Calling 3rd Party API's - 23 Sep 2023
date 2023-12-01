@@ -37,23 +37,320 @@ Same Question Q) Should I keep the return type what exactly what FakeStore has o
 
 A) I will decide what should return
 
+so I decide return type of getAllProducts() from string to List<Product> in ProductService.java
+
+Before:
+
+public interface ProductService {
+
+    String getAllProducts();
 
 
+    String getSingleProduct(Long productId);
 
+
+    String addNewProduct(ProductDto productDto);
+
+}
+After:
+
+public interface ProductService {
+
+    List<Product> getAllProducts();
+
+
+    Product getSingleProduct(Long productId);
+
+
+    Product addNewProduct(ProductDto productDto);
+
+
+}
 ******************************************************
 
 Time: 19.30
 
 ******************************************************
 
+Product addNewProduct(ProductDto productDto) returns complete product details.
+
+The only difference between ProductDto productDto (the one which goes into the parameter) and the Product return type is id.
+
+(the one which goes into the parameter):
+{
+    "title": "test product",
+    "price": 13.5,
+    "description": "lorem ipsum set",
+    "image": "https://i.pravatar.cc",
+    "category": "electronic"
+}
 
 
+******************************************************
+
+Q) The methods of the service is a DTO Object / Should method of service data to be DTO Object?
+
+A) No, they should actually take the things that are needed.
+
+So we are changing below in ProductService.java:
+
+Before:
+
+Product addNewProduct(ProductDto productDto);
+
+After:
+
+    Product addNewProduct(
+            String title;
+            double price;
+            String  description;
+            String image;
+            String category;
+    );
+
+because a service should not take a DTO Object. A service should be generic because that service can be called for multiple different controllers.
+
+Quick reminder for above continue:
+
+Services should not depend upon DTOs
+DTOs ends at Controller.
+Controller takes DTO, fetches out the parameter and calls the service request parameters.
+
+******************************************************
+
+updating return type of getAllProducts() from string to List<Product> in ProductService.java
+
+Before:
+
+
+    String updateProduct(Long productId);
+
+
+After:
+
+
+    Product updateProduct(Long productId);
+
+Q) Why should we return complete Product again for addNewProduct (asked by student)
+
+A) What do I want to return is completely depends upon my api's but typically when someone updated the particular field then they may be interested to know all of the values of that field again.
+
+Suppose think of a front end perspective, frontend says update profile, after updating frontend profile typically the page refreshes where all of the new profile value shows. So typically front after calling update may want to know the new values.
+
+If we don't have anything to return then we can simple make return type void.
+
+Quick reminder:
+
+So by the way, services should ideally return values as much as possible, so your controller decides which and how much information need to provide.
+
+Because services are generic, what will goes to client depends on the controller, so controller decides the responseDTO of addNewProduct() will only have void or nothing.
+
+So lets keep service to return the data so that services are generic.
+
+
+Q) Update Product should also take two things? what is it?
+
+A) To Update the Product, I need the ProductId (which Product) and details of the product
+
+Before:
+
+    Product updateProduct(Long productId);
+
+After:
+
+
+    Product updateProduct(Long productId, Product product);
+
+
+******************************************************
+
+By the way to add new product, we can also single parameters which holds all the values.
+
+Before:
+
+    Product addNewProduct(
+            String title,
+            double price,
+            String  description,
+            String image,
+            String category
+    );
+
+
+After:
+
+    Product addNewProduct(Product product);
 
 
 ******************************************************
 
 
+Q) why all parameters are not present, why only these two? Product updateProduct(Long productId, Product product);? (Question asked by student)
 
+A) Because updateProduct is anyways having Long productId, so I may want to remove that. That completely depends on how client is calling that
+
+For Example:
+
+Example 1:
+
+Client just says update this productId with these are the new parameters then the product object will not have the projectId.
+
+Means the client may just create the product object and might not pass the id to it.
+
+Example 2:
+
+Client might say "update product with id 123" with these parameters.
+
+{
+    name: iPhone15
+    desc: IPhone latest version
+    price: 1199
+
+}
+
+In above fields, the product object that client is giving doesn't have id in it. Assume that this product object has only those (Product updateProduct(Long productId, Product product);)
+
+We are defining what should be there.
+
+Product Object has only those fields filled which need to be updated, Everything else is NULL. This means the client is not providing the complete details.
+
+update product with id 123
+
+{
+    name: iPhone15
+}
+
+The above fields says that only update the name=iPhone15 of this particular product id=123.
+So whatever value already present remain exist, only name will gets updated.
+
+
+Q) why all parameters are not present, why only these two? Product updateProduct(Long productId, Product product);? (Question asked by student again)
+
+A) Anyways all the parameters are already present inside the Product class. So instead of having so many parameters.
+
+Method would have ended up with so many parameters I am building my API
+
+We can say give me the product object and only set those fields that you want to update.
+
+Example:
+
+we can update the code like:
+
+if (product.getImageUrl() != null){
+// means the client wants to update the url
+}
+
+
+This is me how API's need to be because I am building my own API. Controllers will have to make the things work as much as service is asking you to do. This will ensure that controller doesn't have to pass so many parameters because passing so many parameters is not a single thing. So I ask the them (client) to pass the Product Object, in this product object only set those fields to normal that you want to update.
+
+******************************************************
+
+Delete Product return type change from String to Boolean - whether product deleted or not:
+
+Before:
+
+    String deleteProduct(Long productId);
+
+After:
+
+    Boolean deleteProduct(Long productId);
+
+*******************************************************************
+*******************************************************************
+
+
+Lets start FakeStoreProductServiceImpl.java Implementation:
+
+q) In FakeStoreProductServiceImpl.java what do we have to do? we have to basically get a request, we have received a method call. In this method call, what do we have to do?
+
+A) We need to call FakeStoreAPI, Lets first learn how do you call FakeStoreAPI. If you remember, we have imported a library called Spring Web (A Spring starter which could able to create APIs). In Spring Web, you will also see in one of these classes. There is a library or class that comes along with Spring Web called RestTemplate. In our class we are going to take the object of RestTemplateBuilder. We are going to use RestTemplateBuilder to call 3rd Party APIs.
+
+Q) Do you think RestTemplateBuilder need to talk to any repository?
+A) No, RestTemplateBuilder don't need to talk to any repository as there is no DB (database) involved.
+
+******************************************************
+
+At public Product getSingleProduct(Long productId) in FakeStoreProductServiceImpl.java:
+
+Q) To get the product for a particular Id, what type of request will I have to make to FakeStore? Which type of requests that FakeStore have to call?
+
+A) restTemplate.getForEntity();
+
+
+FakeStore API have parameters to get SingleProduct:
+Get a single product
+fetch('https://fakestoreapi.com/products/1')
+            .then(res=>res.json())
+            .then(json=>console.log(json))
+
+Here /1 is a parameter not a fixed value.
+
+so we are making restTemplate.getForEntity("https://fakestoreapi.com/products/{id}")
+
+Q) Now when we are making a method call here restTemplate.getForEntity("https://fakestoreapi.com/products/{id}"), over the network what data format will I get?
+
+A) I will be getting JSON Format over the network. But in my java code base, I can work only interms of objects. I should need to tell that hey whatever json you are going to get, try to convert that into an object of this class. Now whatever class you are going to say that should have exact same parameters as the return is going to get.
+
+parameters:
+
+            {
+                id:1,
+                title:'...',
+                price:'...',
+                category:'...',
+                description:'...',
+                image:'...'
+            }
+
+
+Q) Do we have any such class that exact same parameters as return is going to get?
+A) Yes, we created ProductDTO (which has same parameters like id, title, price, category, description, image).
+
+restTemplate.getForEntity("https://fakestoreapi.com/products/{id}", ProductDto.class);
+
+we are saying  hey restTemplate make a method call here (https://fakestoreapi.com/products/{id}). Whatever json you will get from this method call try to convert this json in to an object of ProductDTO.class
+
+
+Q) Is this method (      restTemplate.getForEntity("https://fakestoreapi.com/products/{id}", ProductDto.class);) has all of the things?
+
+A) No, we didn't specified the value of id yet. So we will pass the productId parameter additionally.
+
+restTemplate.getForEntity("https://fakestoreapi.com/products/{id}", ProductDto.class, productId);
+
+******************************************************
+
+Q) what is restTemplate method?
+
+A) RestTemplate method has these parameters
+URL - where to make the request,
+return type - whatever json we are going to get, what datatype to convert the json into. Whatever datatype you are specifying should have attributes with exact same name and type.
+Parameters - any parameters in the url, we need to specify
+
+For Example:
+
+In my Product DTO, if we change this variable from private String title to private String ttl
+
+Q) What do you think that does restTemplate will be able to set the title value to ttl?
+
+A) No, restTemplate will not be able to set the title value to ttl. It just keeps the ttl value as null. Basically the mapper tries to map the value based on name
+
+
+******************************************************
+
+In FakeStoreProductServiceImpl.java at getSingleProduct(Long productId):
+
+restTemplate.getForEntity("https://fakestoreapi.com/products/{id}", ProductDto.class, productId); - going to return the object of ProductDTO.class
+
+so the return type should be ResponseEntity<ProductDTO> response
+
+ResponseEntity<ProductDto> response = restTemplate.getForEntity("https://fakestoreapi.com/products/{id}", ProductDto.class, productId);
+
+
+Q) Why it is not just a ProductDTO object, why it is a ResponseEntity<ProductDto>?
+
+******************************************************
+
+39.00
 
 ******************************************************
 

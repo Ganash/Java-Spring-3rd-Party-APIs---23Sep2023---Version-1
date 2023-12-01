@@ -1,21 +1,24 @@
 package dev.ganesh.productServicettsevening.services;
 
 import dev.ganesh.productServicettsevening.dtos.ProductDto;
+import dev.ganesh.productServicettsevening.models.Product;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 public interface ProductService {
 
-    String getAllProducts();
+    List<Product> getAllProducts();
 
 
-    String getSingleProduct(Long productId);
+    Product getSingleProduct(Long productId);
 
 
-    String addNewProduct(ProductDto productDto);
+    Product addNewProduct(Product product);
 
 
-    String updateProduct(Long productId);
+    Product updateProduct(Long productId, Product product);
 
 
-    String deleteProduct(Long productId);
+    Boolean deleteProduct(Long productId);
 }
