@@ -346,7 +346,52 @@ so the return type should be ResponseEntity<ProductDTO> response
 ResponseEntity<ProductDto> response = restTemplate.getForEntity("https://fakestoreapi.com/products/{id}", ProductDto.class, productId);
 
 
-Q) Why it is not just a ProductDTO object, why it is a ResponseEntity<ProductDto>?
+Q) Why it is not just a ProductDTO object, why it is a ResponseEntity<ProductDto>?  Do you think         ResponseEntity<ProductDto> response = restTemplate.getForEntity("https://fakestoreapi.com/products/{id}", ProductDto.class, productId); throw an error?
+
+A) It returns http status code as well. ResponseEntity object has this kind of thing. It shows what is the status of the request whether did it succeed or not.
+
+ResponseEntity.class:
+private final HttpStatusCode status;
+
+HttpStatusCode.class:
+boolean is1xxInformational();
+boolean is2xxSuccessful();
+boolean is3xxRedirection();
+boolean is4xxClientError();
+boolean is5xxServerError();
+boolean isError();
+
+
+so basically ResponseEntity<> also tests that extra information which might be helpful for us.
+
+So we can make if condition to check status code:
+
+       if (response.getStatusCode().is2xxSuccessful()){
+
+       // if status code is successful
+
+        } else {
+
+        // if status code is not successful then throw an error
+
+        }
+
+So From this response entity we will get a ProductDTO object
+
+ResponseEntity<ProductDto> response = restTemplate.getForEntity("https://fakestoreapi.com/products/{id}", ProductDto.class, productId);
+
+ProductDto productDto = response.getBody();
+
+getBody(); -> actually going to return with the ProductDto object that is there whatever object that I was trying to convert it into.
+
+
+Q) what about product.setCategory();? do you think I will be able to fill this object yet? Do I have all the information to fill this category object yet
+
+A) May be No, I don't. Then what is the discussion that I want to have, I would either want the discussion that okay may be don't set the category but if that is not ok and want to set the category then we will have to do some changes, either we cannot return the product class or we will have to first get the Id of that category or lets say
+
+Category category = new Category();
+category.setName(productDto.getCategory());
+product.setCategory(category);
 
 ******************************************************
 

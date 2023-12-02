@@ -1,6 +1,7 @@
 package dev.ganesh.productServicettsevening.services;
 
 import dev.ganesh.productServicettsevening.dtos.ProductDto;
+import dev.ganesh.productServicettsevening.models.Category;
 import dev.ganesh.productServicettsevening.models.Product;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,10 @@ public class FakeStoreProductServiceImpl implements ProductService {
         return null;
     }
 
+    /*
+    getSingleProduct(Long productId) returns Product object with all details of the fetched product. The Id of the category will be null but the name of the category shall be correct.
+
+     */
     @Override
     public Product getSingleProduct(Long productId) {
 
@@ -46,7 +51,30 @@ public class FakeStoreProductServiceImpl implements ProductService {
 
         // so the return type should be ResponseEntity<ProductDTO> response
 
-        return null;
+//        if (response.getStatusCode().is2xxSuccessful()){
+//
+//            if status code is successful
+//
+//        } else {
+//
+//            if status code is not successful then throw an error
+//
+//        }
+
+        // From this response entity we will get a ProductDTO object
+
+        ProductDto productDto = response.getBody();
+
+        Product product = new Product();
+        product.setId(productDto.getId());
+        product.setTitle(productDto.getTitle());
+        product.setPrice(productDto.getPrice());
+        Category category = new Category();
+        category.setName(productDto.getCategory());
+        product.setCategory(category);
+        product.setImageURL(productDto.getImage());
+
+        return product;
     }
 
     @Override
