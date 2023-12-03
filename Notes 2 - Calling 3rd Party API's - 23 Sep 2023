@@ -397,10 +397,242 @@ product.setCategory(category);
 
 39.00
 
+43.00
+
 ******************************************************
+
+At public Product getSingleProduct(Long productId) in FakeStoreProductServiceImpl.java:
+
+getSingleProduct(Long productId) returns Product object with all details of the fetched product. The Id of the category will be null but the name of the category shall be correct.
+
+Note:
+We are defining like this (like this is what we are going to return)  or if we don't want this kind of situation can we return the product object then can we return the product model. Then we have to figure out the new model, then we have to probably create a new DTO object.
+
+Actually its your call how you wanted to define. Here I will pass the product object and I am okay with the ID is null. If I am not okay then I need to make changes accordingly.
 
 
 ******************************************************
+
+At getSingleProduct(@PathVariable("productId") Long productId) in ProductController.java:
+
+@GetMapping("/{productId}")
+public String getSingleProduct(@PathVariable("productId") Long productId)
+
+In public String getSingleProduct(@PathVariable("productId") Long productId), I have to return a string
+
+Q) What should the ProductController do? In reality what should the ProductController return?
+A) Controllers returns DTOs, but eventually to the client it returns JSON but technically controller returns or puts out DTO object
+
+So we will create GetSingleProductResponseDto.java in dtos package:
+
+In GetSingleProductResponseDto.java:
+
+We can either create all Product.java attributes in GetSingleProductResponseDto.java
+
+    private String title;
+    private double price;
+    private String description;
+    private Category category;
+    private String imageURL;
+
+or we can put a ProductDto
+
+private ProductDto productDto;
+
+
+Again this is totally my call what I wanted to return. Whatever is the handshake that I have had with the frontend developer that this is what my API will return I will return that.
+
+
+Q) By the way, If I decided that I wanted to return ProductDto, then shouldn't your service also should return ProductDto only (Currently Product getSingleProduct(Long productId) in ProductService.java).
+
+Q) Like first you are converting your ProductDto to your Product Object then again you are converting Product to ProductDto Object? Do you think it is the counter productive?
+
+Here Converting ProductDto to Product Object at getSingleProduct(Long productId) in FakeStoreProductServiceImpl.java:
+
+ProductDto productDto = response.getBody();
+
+        Product product = new Product();
+        product.setId(productDto.getId());
+        product.setTitle(productDto.getTitle());
+        product.setPrice(productDto.getPrice());
+        Category category = new Category();
+        category.setName(productDto.getCategory());
+        product.setCategory(category);
+        product.setImageURL(productDto.getImage());
+
+        return product;
+
+Now If you decide to return a ProductDto at getSingleProduct() in ProductController.java (Like From public String getSingleProduct(@PathVariable("productId") Long productId) to public ProductDto getSingleProduct(@PathVariable("productId") Long productId))? Don't you think you are doing a double effort. First ProductDto to Product and then Product to ProductDto?
+
+A) Yes it is. If you are returning a ProductDto then may be you should change the response of Service to that. Lets say we are returning public GetSingleProductResponseDto getSingleProduct(@PathVariable("productId") Long productId) and GetSingleProductResponseDto internally just have Product to that.
+
+Before:
+
+public class GetSingleProductResponseDto {
+
+    private ProductDto productDto;
+
+}
+
+After:
+
+public class GetSingleProductResponseDto {
+
+    private Product product;
+
+}
+
+
+******************************************************
+
+In ProductController.java:
+
+    @GetMapping("/{productId}")
+    public GetSingleProductResponseDto getSingleProduct(@PathVariable("productId") Long productId){
+
+        GetSingleProductResponseDto responseDto = new GetSingleProductResponseDto();
+        responseDto.setProduct(
+
+                productService.getSingleProduct(productId)
+        );
+
+        return responseDto;
+    }
+
+responseDto.setProduct -> Whatever I get from productService.getSingleProduct(productId)
+
+Execute:
+
+The code has run and Sending GET Method request with URL (http://localhost:8080/products/1):
+
+Output in PostMan:
+
+{
+    "product": {
+        "id": 1,
+        "createdAt": null,
+        "lastUpdatedAt": null,
+        "title": "Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops",
+        "price": 109.95,
+        "description": null,
+        "category": {
+            "id": null,
+            "createdAt": null,
+            "lastUpdatedAt": null,
+            "name": "men's clothing",
+            "description": null,
+            "products": null,
+            "deleted": false
+        },
+        "imageURL": "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
+        "deleted": false
+    }
+}
+
+The PostMAN output shows the same result as FakeStoreURL (https://fakestoreapi.com/products/1)
+
+{
+  "id": 1,
+  "title": "Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops",
+  "price": 109.95,
+  "description": "Your perfect pack for everyday use and walks in the forest. Stash your laptop (up to 15 inches) in the padded sleeve, your everyday",
+  "category": "men's clothing",
+  "image": "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
+  "rating": {
+    "rate": 3.9,
+    "count": 120
+  }
+}
+
+----
+
+Now what we are not getting from fakestore, which parameters of fakestore we ignored. We ignored rating
+
+  "rating": {
+    "rate": 3.9,
+    "count": 120
+  }
+}
+
+
+Q) Lets talk about what spring does?
+A) What spring does is for each of the parameters what RestTemplate does is when it makes the call, whatever JSON it will get from here (https://fakestoreapi.com/products/{id} at getSingleProduct() in FakeStoreProductServiceImpl.java) for each parameter or attributes of this ProductDto class, it will try to check if that attribute present in the json or not. If that attribute present in the json then it put that attribute there or if attribute is not present then it will put that particular attribute of ProductDto class to be equal to null.
+
+For Example:
+
+If we change or refactor attribute name in ProductDto.java from private String title to private String ttle?
+
+If we execute and check in postman then:
+
+Before (existing title attribute): We could see title details
+{
+    "product": {
+        "id": 1,
+        "createdAt": null,
+        "lastUpdatedAt": null,
+        "title": "Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops",
+        "price": 109.95,
+        "description": null,
+        "category": {
+            "id": null,
+            "createdAt": null,
+            "lastUpdatedAt": null,
+            "name": "men's clothing",
+            "description": null,
+            "products": null,
+            "deleted": false
+        },
+        "imageURL": "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
+        "deleted": false
+    }
+}
+
+After (After refactoring title to ttle): we could see title as null
+
+{
+    "product": {
+        "id": 1,
+        "createdAt": null,
+        "lastUpdatedAt": null,
+        "title": null,
+        "price": 109.95,
+        "description": null,
+        "category": {
+            "id": null,
+            "createdAt": null,
+            "lastUpdatedAt": null,
+            "name": "men's clothing",
+            "description": null,
+            "products": null,
+            "deleted": false
+        },
+        "imageURL": "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
+        "deleted": false
+    }
+}
+
+Why title is null because spring was not able to find the any attribute name called ttle in the json.
+
+Quick reminder recap:
+
+Again what spring does is each of the attribute, for each of the attribute of this particular ProductDto class, it tries to see if there is a attribute with same name in the response here ("https://fakestoreapi.com/products/{id}"). It it is then It tries to put that particular attributes from response ("https://fakestoreapi.com/products/{id}") to this particular thing (ProductDto.class). If it is not then it will set the attributes of the particular ProductDto class to be null.
+
+We don't need to have a complete thing, whatever fields that it could able to find then it will put the values
+
+For Example:
+
+Similarly in ProductDto there was not ttle attribute, so that's why title values got ignored. So if attributes not present then it will be ignored or if attributes name didn't match then the values will be considered as null.
+
+Example:
+Rating attribute not present, it got ignored
+ttle attribute name didn't matched, it got null.
+
+In the final ProductDto Object class, we will have only those parameters that are present here (ProductDto.java) as well in the json
+******************************************************
+
+50.00
+******************************************************
+
 
 
 ******************************************************

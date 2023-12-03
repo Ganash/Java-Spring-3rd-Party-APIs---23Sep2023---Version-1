@@ -1,5 +1,6 @@
 package dev.ganesh.productServicettsevening.controllers;
 
+import dev.ganesh.productServicettsevening.dtos.GetSingleProductResponseDto;
 import dev.ganesh.productServicettsevening.dtos.ProductDto;
 import dev.ganesh.productServicettsevening.services.ProductService;
 import org.springframework.web.bind.annotation.*;
@@ -44,9 +45,14 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}")
-    public String getSingleProduct(@PathVariable("productId") Long productId){
+    public GetSingleProductResponseDto getSingleProduct(@PathVariable("productId") Long productId){
 
-        return "Returning Single Product with id: " + productId;
+        GetSingleProductResponseDto responseDto = new GetSingleProductResponseDto();
+        responseDto.setProduct(
+                productService.getSingleProduct(productId)
+        );
+
+        return responseDto;
     }
 
     @PostMapping("")
